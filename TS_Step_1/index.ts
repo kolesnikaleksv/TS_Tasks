@@ -13,7 +13,6 @@ function transferEurToUsd(
   if (available) {
     let res: number = fetchCurr(currRate) * amount * commission;
     console.log(res);
-    // Или запись в элемент на странице вместо консоли
   } else {
     console.log('Сейчас обмен недоступен');
   }
