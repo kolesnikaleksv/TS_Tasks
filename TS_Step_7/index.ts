@@ -1,10 +1,11 @@
-// Создать Generic-интерфейс PlayerData, который подходил бы для создания таких объектов:
+// Create a Generic interface PlayerData that would be suitable for creating such objects:
 type Hours = string | number | { total: number; inMenu: number };
 interface PlayerData<T extends string | number, U extends Hours> {
   game: T;
   hours: U;
   server: string;
 }
+
 const player1: PlayerData<string, number> = {
   game: 'CS:GO',
   hours: 300,
@@ -26,13 +27,13 @@ const player3: PlayerData<string, { total: number; inMenu: number }> = {
   server: 'chess',
 };
 
-// Массив данных с фигурами содержит объекты, у каждого из которых обязательно есть свойство name
-// Каждый объект может еще содержать дополнительные свойства в случайном виде
-// Свойство name может иметь только 4 варианта
-// Функция calculateAmountOfFigures должна принимать массив с объектами, у которых обязательно должно быть свойство name
-// Возвращает она объект-экземпляр AmountOfFigures
-// Внутри себя подсчитывает сколько каких фигур было в массиве и записывает результаты в AmountOfFigures
-// С текущими данными в консоль должно попадать:
+// The array of data with figures contains objects, each of which must have a 'name' property
+// Each object may also contain additional properties in random form
+// The 'name' property can have only 4 variants
+// The calculateAmountOfFigures function must accept an array of objects that must have a 'name' property
+// It returns an object-instance of AmountOfFigures
+// Inside itself, it counts how many of each type of figure were in the array and writes the results in AmountOfFigures
+// With the current data, the console should output:
 // { squares: 3, circles: 2, triangles: 2, others: 1 }
 
 interface AmountOfFigures {
