@@ -1,75 +1,113 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-let myCar = class myCar {
+Object.defineProperty(exports, "__esModule", { value: true });
+require("reflect-metadata");
+const limitMetadataKey = Symbol('limit');
+@changeDoorStatus(false)
+@changeAmountOfFuel(95)
+class myCar {
     fuel = '50%';
     open = true;
-    errors;
-    freeSeats = 3;
+    test;
+    constructor(
+    @limit()
+    test) {
+        this.test = test;
+    }
+    @checkNumberOfSeats(4)
+    freeSeats;
+    // @checkAmountOfFuel()
     isOpen(value) {
         return this.open ? 'open' : `close ${value}`;
     }
-};
-__decorate([
-    checkNumberOfSeats(4),
-    __metadata("design:type", Number)
-], myCar.prototype, "freeSeats", void 0);
-__decorate([
-    checkAmountOfFuel,
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], myCar.prototype, "isOpen", null);
-myCar = __decorate([
-    changeDoorStatus(false),
-    changeAmountOfFuel(95)
-], myCar);
-function checkNumberOfSeats(limit) {
-    return function (target, context) {
-        return function (newAmount) {
-            if (newAmount >= 1 && newAmount < limit) {
-                return newAmount;
+    @validate()
+    startTravel(
+    @limit()
+    passengers) {
+        console.log(`Started with ${passengers} passengers`);
+    }
+}
+function limit() {
+    console.log('Init: Parameter Decorator');
+    return (target, propertyKey, parameterIndex) => {
+        console.log('Call: Parameter Decorator');
+        let limitedParametrs = Reflect.getOwnMetadata(limitMetadataKey, target, propertyKey) || [];
+        limitedParametrs.push(parameterIndex);
+        Reflect.defineMetadata(limitMetadataKey, limitedParametrs, target, propertyKey);
+    };
+}
+function validate() {
+    console.log('Init: Method Decorator');
+    return (target, propertyKey, descriptor) => {
+        console.log('Call: Method Decorator');
+        let method = descriptor.value;
+        descriptor.value = function (...args) {
+            let limitedParametrs = Reflect.getOwnMetadata(limitMetadataKey, target, propertyKey);
+            if (limitedParametrs) {
+                for (let index of limitedParametrs) {
+                    if (args[index] > 4) {
+                        throw new Error('Нельзя больше 4х пассажиров');
+                    }
+                }
             }
-            else {
-                throw Error(`Больше ${limit} сидений быть не может, меньше 1 тоже`);
-            }
+            return method?.apply(this, args);
         };
     };
 }
-function checkAmountOfFuel(target, context) {
-    return function (...args) {
-        // console.log(this.fuel);
-        console.log(`${String(context.name)} был запущен`);
-        return target.apply(this, args);
+function checkNumberOfSeats(limit) {
+    console.log('Init: Property Decorator');
+    return function (target, propertyKey) {
+        console.log('Call: Property Decorator');
+        let symbol = Symbol();
+        const getter = function () {
+            return this[symbol];
+        };
+        const setter = function (newAmount) {
+            if (newAmount >= 1 && newAmount < limit) {
+                this[symbol] = newAmount + 1;
+            }
+            else {
+                // console.log(`Больше ${limit} сидений быть не может`);
+                Object.defineProperty(target, 'errors', {
+                    value: `Больше ${limit} сидений быть не может`,
+                });
+            }
+        };
+        Object.defineProperty(target, propertyKey, {
+            get: getter,
+            set: setter,
+        });
+    };
+}
+function checkAmountOfFuel() {
+    console.log('Init: Method Decorator');
+    return (target, propertyKey, descriptor) => {
+        console.log('Call: Method Decorator');
+        const oldValue = descriptor.value;
+        descriptor.value = function (...args) {
+            console.log(this.fuel);
+            return oldValue.apply(this, args);
+        };
     };
 }
 function changeDoorStatus(status) {
-    console.log('door init');
-    return (target, context) => {
-        console.log('door changed');
-        return class extends target {
+    console.log('Init: Class Decorator Door');
+    return (constructor) => {
+        console.log('Call: Class Decorator Door');
+        return class extends constructor {
             open = status;
         };
     };
 }
 function changeAmountOfFuel(amount) {
-    console.log('fuel init');
-    return (target, context) => {
-        console.log('fuel changed');
-        return class extends target {
+    console.log('Init: Class Decorator Fuel');
+    return (constructor) => {
+        console.log('Call: Class Decorator Fuel');
+        return class extends constructor {
             fuel = `${amount}%`;
         };
     };
 }
-const car = new myCar();
-car.freeSeats = -1;
-console.log(car);
-console.log(car.errors);
+const car = new myCar(3);
+car.startTravel(3);
+// console.log(car);
 // f(x(y()));
